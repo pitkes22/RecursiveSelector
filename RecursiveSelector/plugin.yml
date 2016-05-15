@@ -1,0 +1,15 @@
+name: recursiveselector
+# Version of plugin
+version: 0.1
+# Description of plugin.
+description: Tool to recursive selection.
+# Plugin author.
+author: Peter Adam [pitkes22]
+# Main class that extends JavaPlugin.
+main: me.pitkes22.recursiveselector.BukkitPlugin
+# Commands.
+commands:
+  recursiveselector:
+    aliases: [rs, rese, recursiveselector]
+    description: Main plugin command.
+  
