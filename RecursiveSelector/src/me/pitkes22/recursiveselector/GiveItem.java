@@ -36,7 +36,7 @@ public static ItemStack createItem(ItemStack item, String name, String[] lore) {
 
 public static boolean inputValidator(String[] str) {	
 	for (int i = 0;i < str.length;i++) {
-		if ( NumberUtils.isNumber(str[i]) || str[i].equalsIgnoreCase("~")) {
+		if ( (NumberUtils.isNumber(str[i]) || str[i].equalsIgnoreCase("~")) || i == 8) {
 			return true;
 		}else {
 			return false;
@@ -46,7 +46,7 @@ public static boolean inputValidator(String[] str) {
 }
 
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {		
-		if (args.length == 0 || args.length == 1 || args.length == 2 || args.length == 8) {	
+		if (args.length == 0 || args.length == 1 || args.length == 2 || args.length == 8 || args.length == 9) {	
 			if (args.length == 1 && args[0].equalsIgnoreCase("help")) {
 				sender.sendMessage(ChatColor.RED+"Usage: /rs <OffSet> <MaxRep> [minX] [minY] [minZ] [maxX] [maxY] [maxZ]");
 			}else {
@@ -59,6 +59,7 @@ public static boolean inputValidator(String[] str) {
 					String maxX = "~";
 					String maxY = "~";
 					String maxZ = "~";
+					String saveName = "~";
 					int ll = 2;
 					
 					if (args.length > 2) {
@@ -80,6 +81,10 @@ public static boolean inputValidator(String[] str) {
 							maxY = args[6];
 							maxZ = args[7];		
 						}
+						if (args.length > 8) {
+							saveName = args[8];
+						}
+						
 					 
 					lore[0] = "OffSet: "+offSet;
 					lore[1] = "MaxRep: "+maxRep;
@@ -89,7 +94,8 @@ public static boolean inputValidator(String[] str) {
 						lore[4] = "MinZ: "+minZ;
 						lore[5] = "MaxX: "+maxX;
 						lore[6] = "MaxY: "+maxY;
-						lore[7] = "MaxZ: "+maxZ;				
+						lore[7] = "MaxZ: "+maxZ;	
+						lore[8] = "SaveName: "+saveName;
 					}	
 					
 					if(sender instanceof Player){
@@ -102,7 +108,7 @@ public static boolean inputValidator(String[] str) {
 			}
 		}else {			
 			sender.sendMessage("Incorrect number of arguments!");
-			sender.sendMessage(ChatColor.RED+"Usage: /rs <OffSet> <MaxRep> [minX] [minY] [minZ] [maxX] [maxY] [maxZ]");
+			sender.sendMessage(ChatColor.RED+"Usage: /rs <OffSet> <MaxRep> [minX] [minY] [minZ] [maxX] [maxY] [maxZ] [saveName]");
 		}
 		return true;
 		

@@ -1,5 +1,7 @@
 package me.pitkes22.recursiveselector;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import org.apache.commons.lang.time.StopWatch;
@@ -11,20 +13,31 @@ import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.Main;
 import org.bukkit.entity.Player;
 
+import com.sk89q.worldedit.CuboidClipboard;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.EditSessionFactory;
+import com.sk89q.worldedit.LocalPlayer;
+import com.sk89q.worldedit.LocalSession;
 import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 import com.sk89q.worldedit.command.SchematicCommands;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.io.SchematicWriter;
 import com.sk89q.worldedit.internal.annotation.Selection;
 import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.schematic.MCEditSchematicFormat;
+import com.sk89q.worldedit.schematic.SchematicFormat;
+import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.bukkit.selections.*;
 
-
+@SuppressWarnings("deprecation")
 public class Recursion {
 	
 	private Location loc;
-	private int offSet;
-	private int maxRep;
+	private double offSet;
+	private double maxRep;
 	private double minX;
 	private double minY;
 	private double minZ;
@@ -38,6 +51,7 @@ public class Recursion {
 	private Player player;
 	private WorldEditPlugin worldEdit = BukkitPlugin.worldEdit;
 	private boolean[] CheckMinMaxXYZ;
+	private String saveName;
 	
 	public  void Recursion(Location CurLoc){
 		if(CurLoc.getBlockX() < this.RegMin.getBlockX()){
@@ -86,7 +100,7 @@ public class Recursion {
 		}
 	}
 	
-    public Recursion(Location loc,int offSet,int maxRep,double minX,double minY,double minZ,double maxX,double maxY,double maxZ,Player player,boolean[] checkMinMaxXYZ2) {
+    public Recursion(Location loc,double offSet,double maxRep,double minX,double minY,double minZ,double maxX,double maxY,double maxZ,Player player,boolean[] checkMinMaxXYZ2, String saveName) {
     	
     	this.player = player;
 		this.loc = loc;
@@ -102,6 +116,7 @@ public class Recursion {
 		this.RegMin = this.loc.clone();
 		this.RegMax = this.loc.clone();
 		this.CheckMinMaxXYZ = checkMinMaxXYZ2;
+		this.saveName = saveName;
 		
 		Bukkit.getScheduler().runTask(BukkitPlugin.plugin, () -> {
 				player.sendMessage(ChatColor.DARK_PURPLE+"Recursion started...");				
@@ -111,11 +126,48 @@ public class Recursion {
 					Recursion(this.loc);						
 					stopWatch.stop();				
 					CuboidSelection selection = new CuboidSelection(this.loc.getWorld(), this.RegMin, this.RegMax);
-					this.worldEdit.setSelection(this.player,selection);
-				
 					player.sendMessage(ChatColor.DARK_PURPLE+"Recursion ended in "+(stopWatch.getTime())/1000+" sec.");
-					player.sendMessage(ChatColor.LIGHT_PURPLE + "First position set to ("+RegMin.getX()+", "+RegMin.getY()+", "+RegMin.getZ()+") ("+selection.getArea()+")");
-					player.sendMessage(ChatColor.LIGHT_PURPLE + "Second position set to ("+RegMax.getX()+", "+RegMax.getY()+", "+RegMax.getZ()+") ("+selection.getArea()+")");
+					
+					
+					if (saveName != null) {
+						
+						String FinalSaveName = saveName+"0";
+						File dir = new File(BukkitPlugin.worldEdit.getDataFolder(), "/schematics/");
+			            if (!dir.exists()) 
+			            		dir.mkdirs();			            				                			            												
+							for (int i = 0; new File(BukkitPlugin.worldEdit.getDataFolder(), "/schematics/" + saveName +""+i+".schematic").exists(); i++) {
+								FinalSaveName = saveName+""+(i+1);
+			                }						
+						File schematic = new File(BukkitPlugin.worldEdit.getDataFolder(), "/schematics/" + FinalSaveName + ".schematic");
+			            			           		                 			           				
+			            Vector min = selection.getNativeMinimumPoint();
+			            Vector max = selection.getNativeMaximumPoint();	
+			            Vector click = new Vector(this.loc.getX(), this.loc.getY(), this.loc.getZ());
+			            CuboidClipboard clipboard = new CuboidClipboard(max.subtract(min).add(new Vector(1, 1, 1)), min,min.subtract(click));
+			            
+						WorldEditPlugin wep = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+			            WorldEdit we = wep.getWorldEdit();			 
+			            LocalPlayer localPlayer = wep.wrapPlayer(player);
+			            LocalSession localSession = we.getSession(localPlayer);			            
+			            EditSession editSession = localSession.createEditSession(localPlayer);
+						
+						clipboard.copy(editSession);;
+						
+						try {							
+							SchematicFormat.MCEDIT.save(clipboard, schematic);
+							player.sendMessage(ChatColor.LIGHT_PURPLE +""+ FinalSaveName +" saved.");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					
+					} else {
+						this.worldEdit.setSelection(this.player,selection);
+						player.sendMessage(ChatColor.LIGHT_PURPLE + "First position set to ("+RegMin.getX()+", "+RegMin.getY()+", "+RegMin.getZ()+") ("+selection.getArea()+")");
+						player.sendMessage(ChatColor.LIGHT_PURPLE + "Second position set to ("+RegMax.getX()+", "+RegMax.getY()+", "+RegMax.getZ()+") ("+selection.getArea()+")");
+					}
+									
+					
+					
 				}catch (StackOverflowError e){
 					player.sendMessage(ChatColor.RED+" StackOverflow error! Run server with "+ChatColor.ITALIC+" -Xss <size> [g|G|m|M|k|K] "+ChatColor.RESET+ChatColor.RED+" parameter! (Recommended size is 5m)");
 				}
@@ -136,13 +188,13 @@ public class Recursion {
 	public void setLoc(Location loc) {
 		this.loc = loc;
 	}
-	public int getOffSet() {
+	public double getOffSet() {
 		return offSet;
 	}
 	public void setOffSet(int offSet) {
 		this.offSet = offSet;
 	}
-	public int getMaxRep() {
+	public double getMaxRep() {
 		return maxRep;
 	}
 	public void setMaxRep(int maxRep) {

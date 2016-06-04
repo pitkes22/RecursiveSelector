@@ -28,8 +28,8 @@ public class ClickListener implements Listener {
 						if (event.getPlayer().getItemInHand().getItemMeta().getDisplayName() != null && event.getPlayer().getItemInHand().getItemMeta().getDisplayName().equalsIgnoreCase("§6§lRecursive selector")) {
 							List<String> lore = event.getPlayer().getItemInHand().getItemMeta().getLore();
 						
-							int offSet = 1;
-							int maxRep = 5000;
+							double offSet = 1;
+							double maxRep = 5000;
 							double minX = 0;
 							double minY = 0;
 							double minZ = 0;
@@ -37,13 +37,14 @@ public class ClickListener implements Listener {
 							double maxY = 0;
 							double maxZ = 0;
 							boolean[] checkMinMaxXYZ = new boolean[6];
+							String saveName = null;
 							Player player = event.getPlayer();
 							
 							if (lore.size() >= 1 && !lore.get(0).substring(lore.get(0).lastIndexOf(' ')+1).equals("~" )) {
-								offSet = Integer.parseInt(lore.get(0).substring(lore.get(0).lastIndexOf(' ')+1)); 
+								offSet = Double.parseDouble(lore.get(0).substring(lore.get(0).lastIndexOf(' ')+1)); 
 							}
 							if (lore.size() > 1 && !lore.get(1).substring(lore.get(1).lastIndexOf(' ')+1).equals("~")) {
-								maxRep = Integer.parseInt(lore.get(1).substring(lore.get(1).lastIndexOf(' ')+1)); 	
+								maxRep = Double.parseDouble(lore.get(1).substring(lore.get(1).lastIndexOf(' ')+1)); 	
 							}
 							if (lore.size() > 2) {	
 									try {minX = Double.parseDouble(lore.get(2).substring(lore.get(2).lastIndexOf(' ')+1)); } catch (NumberFormatException e) {}
@@ -63,8 +64,11 @@ public class ClickListener implements Listener {
 										checkMinMaxXYZ[i] = true ;
 								}
 							}
+							if (lore.size() > 8) {
+								saveName = lore.get(8).substring(lore.get(8).lastIndexOf(' ')+1);
+							}
 				
-							new Recursion(event.getClickedBlock().getLocation(), offSet, maxRep, minX, minY, minZ, maxX, maxY, maxZ, player, checkMinMaxXYZ);
+							new Recursion(event.getClickedBlock().getLocation(), offSet, maxRep, minX, minY, minZ, maxX, maxY, maxZ, player, checkMinMaxXYZ, saveName);
 							event.setCancelled(true);
 						}
 					}
